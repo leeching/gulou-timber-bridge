@@ -223,8 +223,10 @@
     const loadingText = document.getElementById('loadingText');
     const progressFill = document.getElementById('progressFill');
     const rotateButton = document.getElementById('rotateButton');
+    const downloadLink = document.querySelector('.download');
     const woodColorSelect = document.getElementById('woodColor');
     const originalWoodColors = new Map();
+    let compressedModelFallbackAttempted = false;
     const woodPalettes = {
       warm: {
         '松木 · 主拱梁': '#87583A',
@@ -265,7 +267,23 @@
       loading.classList.add('done');
       updateWoodColor();
     });
-    viewer.addEventListener('error', () => {
+    viewer.addEventListener('error', async () => {
+      if (!compressedModelFallbackAttempted) {
+        compressedModelFallbackAttempted = true;
+        loadingText.textContent = '正在載入壓縮模型';
+        try {
+          const response = await fetch('./gulou-timber-bridge.glb.gz');
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const compressed = await response.arrayBuffer();
+          const decoded = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+          const modelUrl = URL.createObjectURL(await new Response(decoded).blob());
+          viewer.src = modelUrl;
+          downloadLink.href = modelUrl;
+          return;
+        } catch (error) {
+          console.error('Compressed model fallback failed:', error);
+        }
+      }
       loadingText.textContent = '模型載入失敗，請確認 GLB 檔案與網頁放在一起';
       progressFill.style.width = '100%';
     });
