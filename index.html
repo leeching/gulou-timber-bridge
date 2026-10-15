@@ -89,6 +89,12 @@
     .chip { padding: 7px 9px; color: #59666a; border: 1px solid #e4e9e7; border-radius: 99px; font-size: 10px; }
     .control-title { margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
     .control-hint { margin: 0 0 13px; color: #788487; font-size: 10px; line-height: 1.7; }
+    .color-control { display: grid; gap: 7px; margin-top: 12px; }
+    .color-label { color: #59666a; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+    .color-select {
+      width: 100%; min-height: 38px; padding: 0 10px; color: var(--ink); background: #fff;
+      border: 1px solid #dce3e1; border-radius: 3px; font: inherit; font-size: 11px;
+    }
     .button-row { display: flex; gap: 8px; }
     .button {
       min-height: 38px; padding: 0 12px; cursor: pointer; border: 1px solid #dce3e1; border-radius: 3px;
@@ -116,6 +122,7 @@
       main { width: calc(100% - 20px); }
       .stage { min-height: 360px; height: 56vh; }
       .panel { padding: 20px 17px; }
+      .color-select { font-size: 16px; }
       .bottom-note { font-size: 8px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -192,6 +199,14 @@
           <button class="button view-button" data-orbit="0" type="button">橋側</button>
           <button class="button view-button" data-orbit="90" type="button">橋端</button>
         </div>
+        <div class="color-control">
+          <label class="color-label" for="woodColor">木構顏色</label>
+          <select class="color-select" id="woodColor">
+            <option value="warm" selected>暖木色 · Warm wood</option>
+            <option value="brown">Brown · 棕色</option>
+            <option value="original">原始白色</option>
+          </select>
+        </div>
         <a class="button download" href="./gulou-timber-bridge.glb" download>
           <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v8m0 0 3-3m-3 3L5 7m-2 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           下載 3D 模型
@@ -208,11 +223,48 @@
     const loadingText = document.getElementById('loadingText');
     const progressFill = document.getElementById('progressFill');
     const rotateButton = document.getElementById('rotateButton');
+    const woodColorSelect = document.getElementById('woodColor');
+    const originalWoodColors = new Map();
+    const woodPalettes = {
+      warm: {
+        '松木 · 主拱梁': '#87583A',
+        '松木 · 次结构': '#A8744F',
+        '松木 · 踏板浅色': '#CDA77D',
+        '松木 · 踏板': '#B98961'
+      },
+      brown: {
+        '松木 · 主拱梁': '#65402D',
+        '松木 · 次结构': '#7E523A',
+        '松木 · 踏板浅色': '#A97C56',
+        '松木 · 踏板': '#916644'
+      }
+    };
+
+    function updateWoodColor() {
+      if (!viewer.model) return;
+      viewer.model.materials
+        .filter((material) => material.name?.startsWith('松木 ·'))
+        .forEach((material) => {
+          const pbr = material.pbrMetallicRoughness;
+          if (!originalWoodColors.has(material)) {
+            originalWoodColors.set(material, Array.from(pbr.baseColorFactor));
+          }
+          if (woodColorSelect.value === 'original') {
+            pbr.setBaseColorFactor(originalWoodColors.get(material));
+            return;
+          }
+          const color = woodPalettes[woodColorSelect.value]?.[material.name];
+          if (color) pbr.setBaseColorFactor(color);
+        });
+    }
 
     viewer.addEventListener('progress', (event) => {
       progressFill.style.width = Math.round(event.detail.totalProgress * 100) + '%';
     });
-    viewer.addEventListener('load', () => loading.classList.add('done'));
+    viewer.addEventListener('load', () => {
+      loading.classList.add('done');
+      updateWoodColor();
+    });
     viewer.addEventListener('error', () => {
       loadingText.textContent = '模型載入失敗，請確認 GLB 檔案與網頁放在一起';
       progressFill.style.width = '100%';
@@ -227,6 +279,7 @@
       viewer.toggleAttribute('auto-rotate', shouldRotate);
       rotateButton.textContent = shouldRotate ? '暫停自動旋轉' : '開始自動旋轉';
     });
+    woodColorSelect.addEventListener('change', updateWoodColor);
     document.getElementById('resetButton').addEventListener('click', () => {
       viewer.cameraTarget = 'auto';
       viewer.cameraOrbit = '35deg 70deg auto';
@@ -242,4 +295,3 @@
   </script>
 </body>
 </html>
-
