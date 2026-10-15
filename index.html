@@ -272,9 +272,17 @@
         compressedModelFallbackAttempted = true;
         loadingText.textContent = '正在載入壓縮模型';
         try {
-          const response = await fetch('./gulou-timber-bridge.glb.gz');
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const compressed = await response.arrayBuffer();
+          const parts = await Promise.all(Array.from({ length: 9 }, async (_, index) => {
+            const partResponse = await fetch(`./gulou-timber-bridge.glb.gz.part${String(index).padStart(2, '0')}`);
+            if (!partResponse.ok) throw new Error(`Model part ${index + 1}: HTTP ${partResponse.status}`);
+            return partResponse.arrayBuffer();
+          }));
+          const compressed = new Uint8Array(parts.reduce((total, part) => total + part.byteLength, 0));
+          let offset = 0;
+          parts.forEach((part) => {
+            compressed.set(new Uint8Array(part), offset);
+            offset += part.byteLength;
+          });
           const decoded = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
           const modelUrl = URL.createObjectURL(await new Response(decoded).blob());
           viewer.src = modelUrl;
