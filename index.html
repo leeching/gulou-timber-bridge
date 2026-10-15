@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a20">
+  <meta name="description" content="鼓樓水岸木拱橋互動 3D 模型，可在瀏覽器中旋轉與縮放。">
+  <title>鼓樓水岸木拱橋｜互動 3D 模型</title>
+  <link rel="preconnect" href="https://ajax.googleapis.com">
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172328;
+      --muted: #6d797b;
+      --line: #e1e7e5;
+      --accent: #b7683d;
+      --paper: #f5f6f3;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      letter-spacing: .01em;
+    }
+    button, a { font: inherit; }
+    .topbar {
+      height: 78px;
+      padding: 0 clamp(20px, 5vw, 76px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(23,35,40,.08);
+      background: rgba(255,255,255,.76);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { width: 34px; height: 34px; color: var(--accent); }
+    .brand-name { font-size: 13px; font-weight: 700; letter-spacing: .13em; }
+    .brand-caption { margin-top: 3px; color: var(--muted); font-size: 9px; letter-spacing: .19em; }
+    .top-note { display: flex; align-items: center; gap: 9px; color: #677478; font-size: 11px; letter-spacing: .12em; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #4c9a78; box-shadow: 0 0 0 4px rgba(76,154,120,.12); }
+    main { width: min(1440px, calc(100% - 48px)); margin: 28px auto 26px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: stretch; }
+    .stage {
+      position: relative;
+      min-height: min(760px, calc(100vh - 135px));
+      height: min(760px, calc(100vh - 135px));
+      overflow: hidden;
+      border: 1px solid rgba(23,35,40,.08);
+      border-radius: 5px;
+      background: linear-gradient(180deg, #c9dbe0 0%, #e8e8dc 56%, #bac9c2 100%);
+      box-shadow: 0 22px 60px rgba(33,52,54,.10);
+    }
+    model-viewer { display: block; width: 100%; height: 100%; background: transparent; --poster-color: transparent; }
+    model-viewer::part(default-progress-bar) { height: 3px; background: var(--accent); }
+    .stage-tag, .stage-hint { position: absolute; z-index: 1; pointer-events: none; }
+    .stage-tag {
+      top: 18px; left: 18px; padding: 8px 10px;
+      color: #fff; background: rgba(18,32,38,.72); border: 1px solid rgba(255,255,255,.22);
+      font-size: 9px; letter-spacing: .18em;
+    }
+    .stage-hint { right: 17px; bottom: 16px; color: rgba(23,35,40,.72); font-size: 11px; }
+    .loading {
+      position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; gap: 13px;
+      color: #344348; background: linear-gradient(180deg, #c9dbe0, #dce2d9); text-align: center;
+      transition: opacity .4s ease;
+    }
+    .loading.done { opacity: 0; pointer-events: none; }
+    .loading-title { font-size: 12px; letter-spacing: .12em; }
+    .progress-track { width: 190px; height: 2px; background: rgba(23,35,40,.16); }
+    .progress-fill { width: 0; height: 100%; background: var(--accent); transition: width .15s ease; }
+    .panel {
+      display: flex; flex-direction: column; padding: 27px 23px 20px;
+      border: 1px solid var(--line); border-radius: 5px; background: var(--white);
+      box-shadow: 0 16px 40px rgba(33,52,54,.045);
+    }
+    .eyebrow { margin: 0 0 12px; color: var(--accent); font-size: 9px; font-weight: 700; letter-spacing: .22em; }
+    h1 { margin: 0; font-size: clamp(23px, 2.1vw, 30px); line-height: 1.3; font-weight: 600; letter-spacing: .02em; }
+    .english { margin: 7px 0 19px; color: #758184; font-size: 10px; letter-spacing: .16em; }
+    .description { margin: 0; color: #687578; font-size: 12px; line-height: 1.85; }
+    .rule { height: 1px; margin: 21px 0; background: var(--line); }
+    .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 10px; }
+    .spec-label { display: block; margin-bottom: 5px; color: #899396; font-size: 9px; letter-spacing: .12em; }
+    .spec-value { font-size: 13px; font-weight: 600; }
+    .materials { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { padding: 7px 9px; color: #59666a; border: 1px solid #e4e9e7; border-radius: 99px; font-size: 10px; }
+    .control-title { margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+    .control-hint { margin: 0 0 13px; color: #788487; font-size: 10px; line-height: 1.7; }
+    .button-row { display: flex; gap: 8px; }
+    .button {
+      min-height: 38px; padding: 0 12px; cursor: pointer; border: 1px solid #dce3e1; border-radius: 3px;
+      color: var(--ink); background: #fff; font-size: 10px; transition: background .18s, color .18s, border-color .18s;
+    }
+    .button:hover { border-color: #9daaa9; background: #f7f8f6; }
+    .button.primary { flex: 1; color: #fff; background: #25363c; border-color: #25363c; }
+    .button.primary:hover { background: #354c53; }
+    .views { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+    .views .button { padding: 0 4px; }
+    .download { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; margin-top: 9px; text-decoration: none; }
+    .download svg { width: 13px; height: 13px; }
+    .panel-foot { margin-top: auto; padding-top: 22px; color: #929b9d; font-size: 9px; line-height: 1.7; }
+    .bottom-note { display: flex; justify-content: space-between; padding: 13px 2px 0; color: #8b9697; font-size: 9px; letter-spacing: .1em; }
+    @media (max-width: 900px) {
+      main { width: min(100% - 28px, 760px); margin-top: 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .stage { height: min(68vh, 640px); min-height: 420px; }
+      .panel { padding: 22px; }
+      .panel-foot { margin-top: 16px; }
+    }
+    @media (max-width: 520px) {
+      .topbar { height: 64px; padding: 0 16px; }
+      .top-note { font-size: 9px; }
+      main { width: calc(100% - 20px); }
+      .stage { min-height: 360px; height: 56vh; }
+      .panel { padding: 20px 17px; }
+      .bottom-note { font-size: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <path d="M5 31h30M8 28c7-13 17-13 24 0M10 28V14m20 14V14M10 14h20M13 18h14M13 22h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M10 14 20 8l10 6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">GULOU WATERFRONT</div>
+        <div class="brand-caption">TIMBER BRIDGE · DIGITAL MODEL</div>
+      </div>
+    </div>
+    <div class="top-note"><span class="live-dot"></span> INTERACTIVE 3D</div>
+  </header>
+
+  <main>
+    <section class="layout" aria-label="互動橋梁模型">
+      <div class="stage">
+        <div class="stage-tag">LIVE 3D MODEL&nbsp; / &nbsp;GLB</div>
+        <model-viewer id="bridge"
+          src="./gulou-timber-bridge.glb"
+          alt="鼓樓水岸木拱橋 3D 模型，包含木構架、金屬外掛板與中央玻璃採光帶"
+          camera-controls
+          auto-rotate
+          auto-rotate-delay="2200"
+          rotation-per-second="7deg"
+          interaction-prompt="auto"
+          touch-action="pan-y"
+          environment-image="neutral"
+          exposure="1.05"
+          shadow-intensity="1.1"
+          shadow-softness="0.75"
+          camera-orbit="35deg 70deg auto"
+          min-camera-orbit="auto 18deg auto"
+          max-camera-orbit="auto 155deg auto"
+          loading="eager"
+          reveal="auto">
+        </model-viewer>
+        <div class="loading" id="loading" aria-live="polite">
+          <div class="loading-title" id="loadingText">正在載入橋梁模型</div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <div class="stage-hint">拖曳旋轉&nbsp; · &nbsp;滾輪縮放&nbsp; · &nbsp;觸控可操作</div>
+      </div>
+
+      <aside class="panel">
+        <p class="eyebrow">ARCHITECTURE / 3D</p>
+        <h1>鼓樓水岸木拱橋</h1>
+        <p class="english">TIMBER BRIDGE ON GULOU WATERFRONT</p>
+        <p class="description">以木構拱橋為主體的步行景觀橋。拖曳模型即可環視木框架、漸變外掛板與橋面空間。</p>
+        <div class="rule"></div>
+        <div class="specs">
+          <div><span class="spec-label">橋長</span><span class="spec-value">約 25 m</span></div>
+          <div><span class="spec-label">橋寬</span><span class="spec-value">約 7 m</span></div>
+          <div><span class="spec-label">比例人物</span><span class="spec-value">1.8 m</span></div>
+          <div><span class="spec-label">格式</span><span class="spec-value">Web 3D · GLB</span></div>
+        </div>
+        <div class="rule"></div>
+        <p class="control-title">瀏覽操作</p>
+        <p class="control-hint">滑鼠左鍵拖曳旋轉，滾輪縮放；手機可用單指旋轉、雙指縮放。</p>
+        <div class="button-row">
+          <button class="button primary" id="rotateButton" type="button">暫停自動旋轉</button>
+          <button class="button" id="resetButton" type="button">重置視角</button>
+        </div>
+        <div class="views" aria-label="預設視角">
+          <button class="button view-button" data-orbit="35" type="button">斜視</button>
+          <button class="button view-button" data-orbit="0" type="button">橋側</button>
+          <button class="button view-button" data-orbit="90" type="button">橋端</button>
+        </div>
+        <a class="button download" href="./gulou-timber-bridge.glb" download>
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v8m0 0 3-3m-3 3L5 7m-2 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          下載 3D 模型
+        </a>
+        <div class="panel-foot">建議使用支援 WebGL 的新版瀏覽器。模型檔與本頁放在同一資料夾即可部署。</div>
+      </aside>
+    </section>
+    <div class="bottom-note"><span>GULOU WATERFRONT · TIMBER BRIDGE</span><span>INTERACTIVE MODEL VIEWER</span></div>
+  </main>
+
+  <script>
+    const viewer = document.getElementById('bridge');
+    const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loadingText');
+    const progressFill = document.getElementById('progressFill');
+    const rotateButton = document.getElementById('rotateButton');
+
+    viewer.addEventListener('progress', (event) => {
+      progressFill.style.width = Math.round(event.detail.totalProgress * 100) + '%';
+    });
+    viewer.addEventListener('load', () => loading.classList.add('done'));
+    viewer.addEventListener('error', () => {
+      loadingText.textContent = '模型載入失敗，請確認 GLB 檔案與網頁放在一起';
+      progressFill.style.width = '100%';
+    });
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      viewer.removeAttribute('auto-rotate');
+      rotateButton.textContent = '開始自動旋轉';
+    }
+    rotateButton.addEventListener('click', () => {
+      const shouldRotate = !viewer.hasAttribute('auto-rotate');
+      viewer.toggleAttribute('auto-rotate', shouldRotate);
+      rotateButton.textContent = shouldRotate ? '暫停自動旋轉' : '開始自動旋轉';
+    });
+    document.getElementById('resetButton').addEventListener('click', () => {
+      viewer.cameraTarget = 'auto';
+      viewer.cameraOrbit = '35deg 70deg auto';
+      viewer.fieldOfView = '30deg';
+      viewer.jumpCameraToGoal();
+    });
+    document.querySelectorAll('.view-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        viewer.cameraOrbit = button.dataset.orbit + 'deg 70deg auto';
+        viewer.jumpCameraToGoal();
+      });
+    });
+  </script>
+</body>
+</html>
+
